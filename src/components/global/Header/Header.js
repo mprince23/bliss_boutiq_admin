@@ -5,7 +5,6 @@ import {
   IconButton,
   Toolbar,
   Typography,
-  Collapse,
   ListItemButton,
   ListItem,
   Drawer,
@@ -14,7 +13,6 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import logo from "../../../assets/images/header/Asset 2@4x.png";
 import CloseIcon from "@mui/icons-material/Close";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import PersonIcon from "@mui/icons-material/Person";
 import { useNavigate } from "react-router-dom";
 
@@ -116,6 +114,7 @@ const Header = ({ open }) => {
                   py: "10px",
                   objectFit: "contain",
                 }}
+                onClick={() => navigate('/')}
               ></Typography>
               <Box
                 sx={{

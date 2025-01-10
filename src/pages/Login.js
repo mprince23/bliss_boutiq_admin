@@ -12,16 +12,17 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+// import axios from "axios";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
+import axiosInstance from "../Instance";
 // import { profile } from "../atoms/authAtoms";
 //   import { useRecoilState } from "recoil";
 // import { useTheme } from "@emotion/react";
 // import Cookies from "js-cookie";
-const Login_form = () => {
+const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-//   const theme = useTheme();
+  //   const theme = useTheme();
   // const [profileData, setProfileData] = useRecoilState(prof/ile);
   const handleClickShowPassword = () => setShowPassword(!showPassword);
   const navigate = useNavigate();
@@ -42,8 +43,8 @@ const Login_form = () => {
       password: Yup.string().required("Enter a valid password"),
     }),
     onSubmit: (values, actions) => {
-      axios
-        .post("https://blissboutiq-backend.onrender.com/api/user/login", values)
+      axiosInstance
+        .post("/api/user/login", values)
         .then((response) => {
           console.log(response);
           const { token } = response.data;
@@ -214,4 +215,4 @@ const Login_form = () => {
     </Box>
   );
 };
-export default Login_form;
+export default Login;

@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   Table,
   TableBody,
   TableCell,
@@ -9,32 +8,28 @@ import {
   TableRow,
   Paper,
   Typography,
+  IconButton,
 } from "@mui/material";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import EditIcon from "@mui/icons-material/Edit";
+import axiosInstance from "../../Instance";
 
 const Home = () => {
   const [data, setData] = useState([]);
   const navigate = useNavigate();
 
-  // Fetch data from API
   const handleFetchData = () => {
-    axios
-      .get("https://blissboutiq-backend.onrender.com/api/product")
+    axiosInstance
+      .get("/api/product")
       .then((res) => setData(res.data))
       .catch((err) => console.log(err));
   };
 
   const handleDelete = (id) => {
-    const token = localStorage.getItem("token");
-
-    axios
-      .delete("https://blissboutiq-backend.onrender.com/api/product/" + id, {
-        headers: {
-          token: `Bearer ${token}`,
-        },
-      })
+    axiosInstance
+      .delete("/api/product/" + id)
       .then((res) => handleFetchData())
       .catch((err) => console.log(err));
   };
@@ -68,7 +63,7 @@ const Home = () => {
                 <TableCell>{index + 1}</TableCell>
                 <TableCell>
                   <img
-                    src={item.product_images}
+                    src={item.product_images[0]}
                     alt="Product"
                     width="60"
                     height="60"
@@ -80,21 +75,21 @@ const Home = () => {
                 <TableCell>{item.category}</TableCell>
                 <TableCell>{item.sub_category}</TableCell>
                 <TableCell>
-                  <Button
+                  <IconButton
                     variant="contained"
                     color="primary"
                     sx={{ marginRight: 1 }}
                     onClick={() => navigate(`/edit-product/${item._id}`)}
                   >
-                    Edit
-                  </Button>
-                  <Button
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton
                     variant="contained"
-                    color="secondary"
                     onClick={() => handleDelete(item._id)}
+                    sx={{ color: "red" }}
                   >
-                    Delete
-                  </Button>
+                    <DeleteOutlineIcon />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}

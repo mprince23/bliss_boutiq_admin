@@ -12,9 +12,9 @@ import {
   Typography,
   Grid,
 } from "@mui/material";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
+import axiosInstance from "../Instance";
 
 const AddProduct = () => {
   const { id } = useParams();
@@ -30,8 +30,9 @@ const AddProduct = () => {
     price: { orignal_price: "", discounted_price: "" },
     color_options: [],
     instruction: "",
-    product_images: null,
+    product_images: [],
     stock: "",
+    other_info: "",
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -39,8 +40,8 @@ const AddProduct = () => {
   useEffect(() => {
     if (id) {
       setIsLoading(true);
-      axios
-        .get(`https://blissboutiq-backend.onrender.com/api/product/${id}`)
+      axiosInstance
+        .get(`/api/product/${id}`)
         .then((response) => {
           const product = response.data;
           setFormData({
@@ -49,7 +50,7 @@ const AddProduct = () => {
               orignal_price: product.price?.orignal_price || "",
               discounted_price: product.price?.discounted_price || "",
             },
-            product_images: product.product_images || null,
+            product_images: product.product_images || [],
           });
         })
         .catch((error) => {
@@ -66,10 +67,11 @@ const AddProduct = () => {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData((prev) => ({ ...prev, product_images: file }));
-    }
+    const files = Array.from(e.target.files);
+    setFormData((prev) => ({
+      ...prev,
+      product_images: [...prev.product_images, ...files],
+    }));
   };
 
   const handlePriceChange = (e) => {
@@ -105,6 +107,7 @@ const AddProduct = () => {
     };
     setFormData((prev) => ({ ...prev, size_options: newSizeOptions }));
   };
+
   const handleColorChange = (e, index) => {
     const newColorOptions = [...formData.color_options];
     newColorOptions[index] = {
@@ -127,8 +130,17 @@ const AddProduct = () => {
         key === "instruction"
       ) {
         formDataPayload.append(key, JSON.stringify(formData[key]));
-      } else if (key === "product_images" && formData.product_images) {
-        formDataPayload.append(key, formData.product_images);
+      } else if (
+        key === "product_images" &&
+        formData.product_images.length > 0
+      ) {
+        formData.product_images.forEach((image) => {
+          if (image instanceof File) {
+            formDataPayload.append(key, image);
+          } else {
+            formDataPayload.append(key, image);
+          }
+        });
       } else {
         formDataPayload.append(key, formData[key]);
       }
@@ -141,7 +153,7 @@ const AddProduct = () => {
 
       const method = id ? "put" : "post";
 
-      const response = await axios({
+      const response = await axiosInstance({
         method,
         url,
         data: formDataPayload,
@@ -185,18 +197,16 @@ const AddProduct = () => {
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <Box>
-              <Typography variant="body1">Upload Product Image</Typography>
+              <Typography variant="body1">Upload Product Images</Typography>
               <label htmlFor="product_images">
                 <img
-                  src={
-                    formData.product_images
-                      ? formData.product_images instanceof File
-                        ? URL.createObjectURL(formData.product_images)
-                        : formData.product_images
-                      : upload_area
-                  }
+                  src={upload_area}
                   alt="Upload Preview"
-                  style={{ height: 100, cursor: "pointer", objectFit: "cover" }}
+                  style={{
+                    height: 100,
+                    cursor: "pointer",
+                    objectFit: "cover",
+                  }}
                 />
               </label>
               <input
@@ -205,7 +215,30 @@ const AddProduct = () => {
                 name="product_images"
                 onChange={handleFileChange}
                 hidden
+                multiple
               />
+            </Box>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="body1">Selected Images</Typography>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+              {formData.product_images.map((image, index) => {
+                const imageUrl =
+                  image instanceof File ? URL.createObjectURL(image) : image;
+                return (
+                  <img
+                    key={index}
+                    src={imageUrl}
+                    alt={`Uploaded Image ${index + 1}`}
+                    style={{
+                      width: 100,
+                      height: 100,
+                      objectFit: "cover",
+                      borderRadius: 4,
+                    }}
+                  />
+                );
+              })}
             </Box>
           </Grid>
 
@@ -221,7 +254,6 @@ const AddProduct = () => {
               required
             />
           </Grid>
-
           <Grid item xs={6}>
             <TextField
               label="Stock"
@@ -289,6 +321,20 @@ const AddProduct = () => {
               </Select>
             </FormControl>
           </Grid>
+
+          <Grid item xs={6}>
+            <TextField
+              label="other Info"
+              variant="outlined"
+              name="other_info"
+              value={formData.other_info}
+              onChange={handleInputChange}
+              placeholder="Enter Other Info"
+              fullWidth
+              required
+            />
+          </Grid>
+
           <Grid item xs={12}>
             <Typography variant="body1" sx={{ fontWeight: "bold" }}>
               Price Options
@@ -348,8 +394,11 @@ const AddProduct = () => {
                 </Grid>
               </Grid>
             ))}
-            <Button onClick={handleAddSize}>Add Size</Button>
+            <Button variant="contained" color="primary" onClick={handleAddSize}>
+              Add Size
+            </Button>
           </Grid>
+
           <Grid item xs={12}>
             <Typography variant="body1" sx={{ fontWeight: "bold" }}>
               Color Options
@@ -368,7 +417,7 @@ const AddProduct = () => {
                 </Grid>
                 <Grid item xs={6}>
                   <TextField
-                    label="Hex Color"
+                    label="Hex Code"
                     variant="outlined"
                     name="hex"
                     value={color.hex}
@@ -378,32 +427,30 @@ const AddProduct = () => {
                 </Grid>
               </Grid>
             ))}
-            <Button onClick={handleAddColor}>Add Color</Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleAddColor}
+            >
+              Add Color
+            </Button>
           </Grid>
+
           <Grid item xs={12}>
-            <TextareaAutosize
+            <TextField
+              label="Instruction"
+              variant="outlined"
               name="instruction"
               value={formData.instruction}
               onChange={handleInputChange}
-              placeholder="Enter product instructions"
-              minRows={4}
-              style={{
-                width: "100%",
-                border: "1px solid rgba(0, 0, 0, 0.23)",
-                padding: "8px",
-                borderRadius: "4px",
-                outline: "none",
-              }}
+              placeholder="Enter product instruction"
+              fullWidth
             />
           </Grid>
+
           <Grid item xs={12}>
-            <Button
-              type="submit"
-              variant="contained"
-              sx={{ backgroundColor: "black" }}
-              fullWidth
-            >
-              Upload Product
+            <Button type="submit" variant="contained" color="primary" fullWidth>
+              {id ? "Update Product" : "Add Product"}
             </Button>
           </Grid>
         </Grid>

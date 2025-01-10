@@ -5,9 +5,9 @@ import { Route, Routes } from "react-router-dom";
 import AddProduct from "./pages/AddProduct";
 import { Box, CssBaseline, styled } from "@mui/material";
 import Sidebar from "./components/sidebar/Sidebar";
-import Login_form from "./pages/Login";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Login from "./pages/Login";
 
 const drawerWidth = 300;
 
@@ -72,7 +72,7 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/add-product" element={<AddProduct />} />
           <Route path="/edit-product/:id" element={<AddProduct />} />
-          <Route path="/login" element={<Login_form />} />
+          <Route path="/login" element={<Login />} />
         </Routes>
       </Main>
     </Box>
